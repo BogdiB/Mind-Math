@@ -1,37 +1,47 @@
+export let extState = "ON";
+
 chrome.runtime.onInstalled.addListener(() => {
     chrome.action.setBadgeText({
-      text: "OFF",
+        text: extState,
     });
-  });
-
-const extensions = 'https://developer.chrome.com/docs/extensions'
-const webstore = 'https://developer.chrome.com/docs/webstore'
+});
   
-chrome.action.onClicked.addListener(async (tab) => {
-    if (tab.url.startsWith(extensions) || tab.url.startsWith(webstore)) {
-        // Retrieve the action badge to check if the extension is 'ON' or 'OFF'
-        const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
-        // Next state will always be the opposite
-        const nextState = prevState === 'ON' ? 'OFF' : 'ON'
+// chrome.action.onClicked.addListener(() => {
+//     // Set the action badge to the next state
+//     extState = extState === "ON" ? "OFF" : "ON";
+//     chrome.action.setBadgeText({
+//         text: extState
+//     });
+// });
 
-        // Set the action badge to the next state
-        await chrome.action.setBadgeText({
-            tabId: tab.id,
-            text: nextState,
-        });
+function inserts(id) {
+    chrome.scripting.executeScript(injection = {
+        target: {tabId: id},
+        files: ["scripts/insert.js"]
+    });
+    chrome.scripting.insertCSS(injection = {
+        target: {tabId: id},
+        files: ["css/insert.css"]
+    });
+}
 
-        if (nextState === "ON") {
-            // Insert the CSS file when the user turns the extension on
-            await chrome.scripting.insertCSS({
-              files: ["css/focus-mode.css"],
-              target: { tabId: tab.id },
+// every time a tab is created, we execute the script which includes the main extension functionality
+// we only want to execute said script on web sites that are not google
+chrome.tabs.onCreated.addListener((tab) => {
+    if (extState === "ON") {
+        if (!tab.pendingUrl.startsWith("http")) {
+            // with this method, if the user reloads the page, the inserts aren't inserted anymore, bypassing the extension functionality
+            // I consider the aforementioned behaviour as fine (say you are panicked in an emergency, etc.), so I will not be "fixing" that
+            chrome.tabs.onUpdated.addListener(function listener (tabId, changeInfo) {
+                // we only want sites that are not google
+                if (tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !changeInfo.url.includes("www.google.")) {
+                    inserts(tab.id);
+                    // remove this listener, so it doesn't keep injecting for every url update on the tab
+                    chrome.tabs.onUpdated.removeListener(listener);
+                }
             });
-        } else if (nextState === "OFF") {
-            // Remove the CSS file when the user turns the extension off
-            await chrome.scripting.removeCSS({
-                files: ["css/focus-mode.css"],
-                target: { tabId: tab.id },
-            });
+        } else {
+            inserts(tab.id);
         }
     }
 });
