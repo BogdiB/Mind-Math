@@ -4,9 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mind Math Popup</title>
+    <link rel="stylesheet" href="../css/popup.css">
 </head>
 <body>
-    <h2>App State</h2>
-    <button>State</button>
+    <!--
+        Everything you see regarding SVGs is not done because it's smart and/or simple,
+        I know the easy way to do what I'm doing, however, I am stubborn when I want
+        to learn how to do something/see if it is possible (I also wanted to use the
+        chrome message connection (see ../scripts/svg.js)).
+
+        The reason I am keeping it like this, instead of doing the smart and simple
+        solution (not using embed and just pasting the SVG, so I can just switch the
+        class with js), is in case some other poor soul wants to know how to do something
+        like this in this context (extensions).
+    -->
+    <div id="svgWrapper" title="Power Button for the extension, showing its current state.">
+        <span id="svgBox"></span>
+        <embed src="../icons/power-button.svg" id="svgEmbed"></embed>
+    </div>
+    <button type="button" id="stateButton">State</button>
+    
+    
+    <script src="../scripts/popup.js"></script>
 </body>
 </html>

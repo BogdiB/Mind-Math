@@ -1,0 +1,13 @@
+#svgWrapper {
+    width: 4rem;
+    height: 4rem;
+    cursor: pointer;
+    margin: 0.5rem auto; 
+}
+
+#svgBox {
+    width: inherit;
+    height: inherit;
+    position: absolute;
+    cursor: pointer;
+}

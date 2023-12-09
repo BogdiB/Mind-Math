@@ -2,7 +2,7 @@
     "manifest_version": 3,
     
     "name": "Mind Math",
-    "version": "0.3",
+    "version": "0.4",
     "description": "Helps you learn how to do math faster in your head.",
 
     "permissions": ["activeTab", "tabs", "scripting"],
@@ -13,7 +13,7 @@
             "32": "icons/icon_32.png"
         },
         "default_popup": "html/popup.html",
-        "default_title": "Mind Math popup."
+        "default_title": "Click for the Mind Math popup."
     },
     "icons": {
         "16": "icons/icon_16.png",
