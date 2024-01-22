@@ -1,32 +1,38 @@
-// estState - extension state
-let extState = "ON";
+// extState - extension state
+// either "ON" or "OFF"
+// await chrome.storage.session.set({"extState": "ON"});
+// let {extState} = await chrome.storage.session.get("extState");
 
-chrome.runtime.onInstalled.addListener(() => {
+function visualUpdateByState(extState) {
     chrome.action.setBadgeText({
         text: extState,
     });
+    // visually update the powerButton
+    chrome.runtime.sendMessage(extState)
+        .catch((e) => console.log(e));
+}
+
+chrome.runtime.onInstalled.addListener(async () => {
+    await chrome.storage.session.set({"extState": "ON"});
+    visualUpdateByState("ON");
 });
 
-// I could also use the storage API to do this - sync would probably be best
 /*
     listen to messages regarding the extState -> return the extState
-    REQUEST IS A BOOL:
+    REQUEST IS A **BOOL**:
         false means requesting the value of extState
-        true means requesting the change of extState
+        true means requesting the CHANGE of extState
 */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    let {extState} = await chrome.storage.session.get("extState");
     if (message === true) {
         extState = extState === "ON" ? "OFF" : "ON";
-        chrome.action.setBadgeText({
-            text: extState
-        });
+        chrome.storage.session.set({"extState": extState})
     }
     else if (message !== false) {
         throw Error("Bad message request for extension state.");
     }
-    // visually update the powerButton
-    chrome.runtime.sendMessage(extState)
-        .catch((e) => console.log(e));
+    visualUpdateByState(extState);
     sendResponse(extState);
 });
   
@@ -51,14 +57,15 @@ function inserts(id) {
 
 // every time a tab is created, we execute the script which includes the main extension functionality
 // we only want to execute said script on web sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
-chrome.tabs.onCreated.addListener((tab) => {
+chrome.tabs.onCreated.addListener(async (tab) => {
+    let {extState} = await chrome.storage.session.get("extState");
     if (extState === "ON") {
         if (!tab.pendingUrl.startsWith("http")) {
             // with this method, if the user reloads the page, the inserts aren't inserted anymore, bypassing the extension functionality
             // I consider the aforementioned behaviour as fine (say you are panicked in an emergency, etc.), so I will not be "fixing" that
             chrome.tabs.onUpdated.addListener(function listener (tabId, changeInfo) {
                 // we only want sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
-                if (tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !changeInfo.url.includes("www.google.")) {
+                if (extState === "ON" && tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !changeInfo.url.includes("www.google.")) {
                     inserts(tab.id);
                     // we remove the onUpdated listener, so it doesn't keep injecting for every url update on the tab
                     chrome.tabs.onUpdated.removeListener(listener);

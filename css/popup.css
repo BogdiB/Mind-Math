@@ -1,3 +1,8 @@
+body {
+    font-size: 14px;
+    background-color: #303030;
+}
+
 #svgWrapper {
     width: 4rem;
     height: 4rem;
