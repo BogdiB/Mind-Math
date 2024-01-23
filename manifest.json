@@ -2,7 +2,7 @@
     "manifest_version": 3,
     
     "name": "Mind Math",
-    "version": "0.4",
+    "version": "0.5",
     "description": "Helps you learn how to do math faster in your head.",
 
     "permissions": ["activeTab", "tabs", "scripting", "storage"],

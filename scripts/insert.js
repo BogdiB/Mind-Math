@@ -7,7 +7,7 @@ let div = document.createElement("div");
 div.id = "mind-math-extension-root";
 document.body.appendChild(div);
 
-div.innerHTML = "<div id=\"mind-math-modal\"></div>";
+div.innerHTML = "<div id=\"mind-math-modal\"><h2>Mind Math</h2></div>";
 
 // when setting the background click for exit event:
 // document.getElementById("mind-math-extension-root").className = "mind-math-no-display";

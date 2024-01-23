@@ -3,18 +3,23 @@
 // await chrome.storage.session.set({"extState": "ON"});
 // let {extState} = await chrome.storage.session.get("extState");
 
-function visualUpdateByState(extState) {
-    chrome.action.setBadgeText({
-        text: extState,
-    });
+// function visualUpdateByState(extState) {
+    // chrome.action.setBadgeText({
+    //     text: extState,
+    // });
     // visually update the powerButton
-    chrome.runtime.sendMessage(extState)
-        .catch((e) => console.log(e));
-}
+    // chrome.runtime.sendMessage(extState)
+    //     .catch((e) => console.log(e));
+// }
 
 chrome.runtime.onInstalled.addListener(async () => {
     await chrome.storage.session.set({"extState": "ON"});
-    visualUpdateByState("ON");
+    // visualUpdateByState("ON");
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+    await chrome.storage.session.set({"extState": "ON"});
+    // visualUpdateByState("ON");
 });
 
 /*
@@ -23,18 +28,18 @@ chrome.runtime.onInstalled.addListener(async () => {
         false means requesting the value of extState
         true means requesting the CHANGE of extState
 */
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    let {extState} = await chrome.storage.session.get("extState");
-    if (message === true) {
-        extState = extState === "ON" ? "OFF" : "ON";
-        chrome.storage.session.set({"extState": extState})
-    }
-    else if (message !== false) {
-        throw Error("Bad message request for extension state.");
-    }
-    visualUpdateByState(extState);
-    sendResponse(extState);
-});
+// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+//     let {extState} = await chrome.storage.session.get("extState");
+//     if (message === true) {
+//         extState = extState === "ON" ? "OFF" : "ON";
+//         chrome.storage.session.set({"extState": extState})
+//     }
+//     else if (message !== false) {
+//         throw Error("Bad message request for extension state.");
+//     }
+//     visualUpdateByState(extState);
+//     sendResponse(extState);
+// });
   
 // chrome.action.onClicked.addListener(() => {
 //     // Set the action badge to the next state
