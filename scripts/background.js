@@ -60,6 +60,23 @@ function inserts(id) {
     });
 }
 
+// basically took the list of the top 10 worldwide search engines
+function searchEngineCheck(url) {
+    if (url.includes("www.google.") ||
+        url.includes("www.bing.") ||
+        url.includes("search.yahoo.") ||
+        url.includes("www.baidu.") ||
+        url.includes("yandex.") ||
+        url.includes("duckduckgo.") ||
+        url.includes("www.ask.") ||
+        url.includes("www.naver.") ||
+        url.includes("www.aol.") ||
+        url.includes("www.seznam.")) {
+        return true;
+    }
+    return false;
+}
+
 // every time a tab is created, we execute the script which includes the main extension functionality
 // we only want to execute said script on web sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
 chrome.tabs.onCreated.addListener(async (tab) => {
@@ -70,7 +87,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
             // I consider the aforementioned behaviour as fine (say you are panicked in an emergency, etc.), so I will not be "fixing" that
             chrome.tabs.onUpdated.addListener(function listener (tabId, changeInfo) {
                 // we only want sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
-                if (extState === "ON" && tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !changeInfo.url.includes("www.google.")) {
+                if (extState === "ON" && tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !searchEngineCheck(changeInfo.url)) {
                     inserts(tab.id);
                     // we remove the onUpdated listener, so it doesn't keep injecting for every url update on the tab
                     chrome.tabs.onUpdated.removeListener(listener);

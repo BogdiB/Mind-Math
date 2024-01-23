@@ -1,9 +1,13 @@
+/* everything might need to be set as important, otherwise some sites might override our css */
+
 #mind-math-extension-root {
     font-size: 16px;
+    color: black;
 
     /* this sets the background for the extension insert */
     position: fixed;
-    z-index: 999999;
+    /* this needs to be so big because of sites like youtube who use a z-index in the thousands */
+    z-index: 9999999;
     top: 0px;
     left: 0px;
     width: 100%;
@@ -16,9 +20,30 @@
 #mind-math-modal {
     background-color: #fefefe;
     margin: 15% auto; /* vertical, horizontal */
-    padding: 20px;
-    border: 1px solid #888;
+    padding: 1.2em;
+    border: 0.1em solid #888;
     width: 60%;
+
+    h2 {
+        text-align: center;
+        padding: 0.5em 0em;
+        color: black;
+    }
+}
+
+#mind-math-close {
+    display: flex;
+    margin: 1em auto;
+    
+    background-color: hsl(348, 60%, 47%);
+    border-color: black;
+    border-style: solid;
+    border-radius: 0.5em;
+    cursor: pointer;
+}
+
+#mind-math-close:hover {
+    background-color: hsl(348, 60%, 35%);
 }
 
 .mind-math-no-display {
