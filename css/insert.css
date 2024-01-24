@@ -1,6 +1,7 @@
-/* everything might need to be set as important, otherwise some sites might override our css */
+/* we don't override the font-family because it will look like our extension belongs to the page a bit more */
+/* for other things, however, we wish to have a roughly consistent look */
 
-#mind-math-extension-root {
+div#mind-math-extension-root {
     font-size: 16px;
     color: black;
 
@@ -12,6 +13,16 @@
     left: 0px;
     width: 100%;
     height: 100%;
+}
+
+#mind-math-background {
+    position: fixed;
+    /* this is relative to the mind-math-extension-root context */
+    z-index: -1;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
     /* fallback background colour */
     background-color: rgb(80, 80, 80);
     background-color: rgba(0,0,0,0.4);
@@ -19,22 +30,71 @@
 
 #mind-math-modal {
     background-color: #fefefe;
-    margin: 15% auto; /* vertical, horizontal */
+    margin: 10% auto; /* vertical, horizontal */
     padding: 1.2em;
     border: 0.1em solid #888;
     width: 60%;
+    font-size: 16px;
 
     h2 {
+        font-size: 24px;
+        font-weight: bold;
+        color: black;
         text-align: center;
         padding: 0.5em 0em;
-        color: black;
+        margin: 0em;
+    }
+
+    p {
+        font-size: 16px;
+        text-align: center;
+        margin: 1em 0em;
+        padding: 0em;
+        line-height: 24px;
     }
 }
 
-#mind-math-close {
-    display: flex;
+#mind-math-form {    
+    font-size: 16px;
+    text-align: center;
+
+    input {
+        font-size: 16px;
+        color: black;
+        margin: 0em auto;
+        padding: 0em 0em;
+        padding-left: 0.1em;
+        text-align: center;
+        width: 4em;
+        height: 1.5em;
+        background-color: transparent;
+        transition: border-color .15s linear;
+        transition: border-radius .15s linear;
+        border-style: solid;
+        border-color: #888;
+        border-radius: 0em;
+    }
+
+    input:focus {
+        border-radius: 0.3em;
+        border-style: solid;
+        border-color: black;
+    }
+}
+
+button#mind-math-close {
+    color: white;
+    font-size: 16px;
+    font-weight: initial;
+    line-height: 24px;
+    letter-spacing: normal;
+    text-transform: none;
+
+    display: block;
     margin: 1em auto;
+    padding: 0.1em;
     
+    background-image: none;
     background-color: hsl(348, 60%, 47%);
     border-color: black;
     border-style: solid;
@@ -42,8 +102,11 @@
     cursor: pointer;
 }
 
-#mind-math-close:hover {
+button#mind-math-close:hover {
+    color: white;
+    background-image: none;
     background-color: hsl(348, 60%, 35%);
+    box-shadow: none;
 }
 
 .mind-math-no-display {

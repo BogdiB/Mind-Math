@@ -82,7 +82,9 @@ function searchEngineCheck(url) {
 chrome.tabs.onCreated.addListener(async (tab) => {
     let {extState} = await chrome.storage.session.get("extState");
     if (extState === "ON") {
-        if (!tab.pendingUrl.startsWith("http")) {
+        // if pending is undefined it means it was probably a tab opened from a link from another page
+        // in that case, we still don't want to set up the listener if the page starts with http, because we are where we want to be for insertion
+        if ((tab.pendingUrl === undefined && !tab.url.startsWith("http")) || !tab.pendingUrl.startsWith("http")) {
             // with this method, if the user reloads the page, the inserts aren't inserted anymore, bypassing the extension functionality
             // I consider the aforementioned behaviour as fine (say you are panicked in an emergency, etc.), so I will not be "fixing" that
             chrome.tabs.onUpdated.addListener(function listener (tabId, changeInfo) {
