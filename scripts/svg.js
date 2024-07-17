@@ -1,33 +1,29 @@
-// extState - extension state
+// MMExtState - extension state
 // either "ON" or "OFF"
-// await chrome.storage.session.set({"extState": "ON"});
-// let {extState} = await chrome.storage.session.get("extState");
+
+async function getExtState() {
+    let storeType = await chrome.storage.local.get("MMExtStateStoreType");
+    if (storeType === "local") {
+        return await chrome.storage.local.get("MMExtState");
+    } else if (storeType === "session") {
+        return await chrome.storage.session.get("MMExtState");
+    }
+    else {
+        await chrome.storage.local.set({"MMExtStateStoreType": "local"})
+        await chrome.storage.local.set({"MMExtState": "ON"});
+        return "ON";
+    }
+}
 
 async function getState() {
-    let {extState} = await chrome.storage.session.get("extState");
-    if (extState === "ON") {
+    let MMExtState = await getExtState();
+    if (MMExtState === "ON") {
         document.getElementById("paths").style.color = "green";
     }
-    else if (extState === "OFF") {
+    else if (MMExtState === "OFF") {
         document.getElementById("paths").style.color = "crimson";
     }
 }
 
 getState();
 chrome.storage.onChanged.addListener(() => getState());
-
-
-// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//     if (!sender.url.endsWith("popup.html")) {
-//         if (message === "ON") {
-//             document.getElementById("paths").style.color = "green";
-//         }
-//         else if (message === "OFF") {
-//             document.getElementById("paths").style.color = "crimson";
-//         }
-//         else {
-//             throw Error("\nBad response in SVG handler: " + message + "\nFrom: " + sender.url + "\n");
-//         }
-//     }
-//     sendResponse();
-// });

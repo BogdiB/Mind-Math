@@ -1,63 +1,43 @@
-// extState - extension state
+// MMExtState - extension state
 // either "ON" or "OFF"
-// await chrome.storage.session.set({"extState": "ON"});
-// let {extState} = await chrome.storage.session.get("extState");
 
-// function visualUpdateByState(extState) {
-    // chrome.action.setBadgeText({
-    //     text: extState,
-    // });
-    // visually update the powerButton
-    // chrome.runtime.sendMessage(extState)
-    //     .catch((e) => console.log(e));
-// }
+async function getExtState() {
+    let storeType = await chrome.storage.local.get("MMExtStateStoreType");
+    if (storeType === "local") {
+        return await chrome.storage.local.set({"MMExtState": "ON"});
+    } else if (storeType === "session") {
+        return await chrome.storage.session.set({"MMExtState": "ON"});
+    }
+    else {
+        await chrome.storage.local.set({"MMExtStateStoreType": "local"})
+        await chrome.storage.local.set({"MMExtState": "ON"});
+        return "ON";
+    }
+}
 
-chrome.runtime.onInstalled.addListener(async () => {
-    await chrome.storage.session.set({"extState": "ON"});
-    // visualUpdateByState("ON");
-});
+chrome.runtime.onInstalled.addListener(getExtState);
+chrome.runtime.onStartup.addListener(getExtState);
 
-chrome.runtime.onStartup.addListener(async () => {
-    await chrome.storage.session.set({"extState": "ON"});
-    // visualUpdateByState("ON");
-});
-
-/*
-    listen to messages regarding the extState -> return the extState
-    REQUEST IS A **BOOL**:
-        false means requesting the value of extState
-        true means requesting the CHANGE of extState
-*/
-// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-//     let {extState} = await chrome.storage.session.get("extState");
-//     if (message === true) {
-//         extState = extState === "ON" ? "OFF" : "ON";
-//         chrome.storage.session.set({"extState": extState})
-//     }
-//     else if (message !== false) {
-//         throw Error("Bad message request for extension state.");
-//     }
-//     visualUpdateByState(extState);
-//     sendResponse(extState);
-// });
-  
-// chrome.action.onClicked.addListener(() => {
-//     // Set the action badge to the next state
-//     extState = extState === "ON" ? "OFF" : "ON";
-//     chrome.action.setBadgeText({
-//         text: extState
-//     });
-// });
-
-function inserts(id) {
-    chrome.scripting.executeScript({
+async function inserts(id) {
+    // chose "nope" on error since I'm not sure what it returns
+    let checker = await chrome.scripting.executeScript({
         target: {tabId: id},
         files: ["scripts/insert.js"]
-    });
-    chrome.scripting.insertCSS({
+    }).catch(e => "nope");
+
+    if (checker === "nope") {
+        return false;
+    }
+
+    checker = await chrome.scripting.insertCSS({
         target: {tabId: id},
         files: ["css/insert.css"]
-    });
+    }).catch(e => "nope");
+
+    if (checker === "nope") {
+        return false;
+    }
+    return true;
 }
 
 // basically took the list of the top 10 worldwide search engines
@@ -77,26 +57,39 @@ function searchEngineCheck(url) {
     return false;
 }
 
-// every time a tab is created, we execute the script which includes the main extension functionality
-// we only want to execute said script on web sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
-chrome.tabs.onCreated.addListener(async (tab) => {
-    let {extState} = await chrome.storage.session.get("extState");
-    if (extState === "ON") {
-        // if pending is undefined it means it was probably a tab opened from a link from another page
-        // in that case, we still don't want to set up the listener if the page starts with http, because we are where we want to be for insertion
-        if ((tab.pendingUrl === undefined && !tab.url.startsWith("http")) || !tab.pendingUrl.startsWith("http")) {
-            // with this method, if the user reloads the page, the inserts aren't inserted anymore, bypassing the extension functionality
-            // I consider the aforementioned behaviour as fine (say you are panicked in an emergency, etc.), so I will not be "fixing" that
-            chrome.tabs.onUpdated.addListener(function listener (tabId, changeInfo) {
-                // we only want sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
-                if (extState === "ON" && tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !searchEngineCheck(changeInfo.url)) {
-                    inserts(tab.id);
-                    // we remove the onUpdated listener, so it doesn't keep injecting for every url update on the tab
-                    chrome.tabs.onUpdated.removeListener(listener);
-                }
-            });
-        } else {
-            inserts(tab.id);
+async function tryInsert(id) {
+    let promise = new Promise((resolve, reject) => resolve(inserts(id)));
+    return promise.then(result => result);
+}
+
+function useUpdated(tab) {
+    // with this method, if the user reloads the page, the inserts aren't inserted anymore, bypassing the extension functionality
+    // I consider the aforementioned behaviour as fine (say you are panicked in an emergency, etc.), so I will not be "fixing" that
+    chrome.tabs.onUpdated.addListener(async function updateListener(tabId, changeInfo) {
+        let MMExtState = await getExtState();
+        // in case the extension gets turned off while it has not inserted itself on the current tab
+        if (MMExtState === "OFF") {
+            chrome.tabs.onUpdated.removeListener(updateListener);
+        
+            // we only want sites that are not google OR OTHER SEARCH ENGINES - TO BE ADDED
+        } else if (tabId === tab.id && changeInfo.url !== undefined && changeInfo.url.startsWith("http") && !searchEngineCheck(changeInfo.url)) {
+            let done = await tryInsert(tab.id);
+            // if it is done we remove the onUpdated listener, so it doesn't keep injecting for every url update on the tab
+            if (done === true)
+                chrome.tabs.onUpdated.removeListener(updateListener);
         }
+    });
+}
+
+async function createdListener(tab) {
+    let MMExtState = await getExtState();
+    if (MMExtState === "ON") {
+        let done = await tryInsert(tab.id);
+        if (done === false)
+            useUpdated(tab);
     }
-});
+}
+
+// every time a tab is created, we execute the script which includes the main extension functionality
+// we only want to execute said script on web sites that are not GOOGLE OR OTHER SEARCH ENGINES
+chrome.tabs.onCreated.addListener(createdListener);
